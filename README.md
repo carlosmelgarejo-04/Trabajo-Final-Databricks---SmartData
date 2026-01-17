@@ -1,22 +1,6 @@
 # 🎧 Proyecto Final – Spotify Lakehouse Analytics
 
-<!-- TOC -->
-- [📌 Resumen Ejecutivo](#-resumen-ejecutivo)
-- [🗂 Fuentes de Datos](#-fuentes-de-datos)
-- [🏗 Arquitectura General](#-arquitectura-general)
-- [🥉 Capa Bronze (Raw Data)](#-capa-bronze-raw-data)
-- [🥈 Capa Silver (Curated / Normalized)](#-capa-silver-curated--normalized)
-- [🥇 Capa Gold (Analytics / BI)](#-capa-gold-analytics--bi)
-- [🔄 Orquestación del Pipeline](#-orquestación-del-pipeline)
-- [📊 Dashboards en Power BI](#-dashboards-en-power-bi)
-- [🔐 Gobierno de Datos](#-gobierno-de-datos)
-- [🚀 Resultados](#-resultados)
-- [📌 Posibles Mejoras Futuras](#-posibles-mejoras-futuras)
-- [👤 Autor](#-autor)
-- [📎 Referencias](#-referencias)
-<!-- /TOC -->
-
-## 📌 Resumen Ejecutivo
+## 📌 Resumen 
 
 Este proyecto implementa una arquitectura **Lakehouse con patrón Medallion (Bronze → Silver → Gold)** sobre **Databricks + Unity Catalog**, integrando datos musicales de Spotify para construir productos analíticos listos para **Business Intelligence en Power BI**.
 
