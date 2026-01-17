@@ -417,19 +417,18 @@ jobs:
       run: |
         rm -rf notebooks_to_deploy
         rm -f workflow_config.json
-    
     - name: Done
       run: |
         echo "🎉 ¡Despliegue completado exitosamente!"
         echo ""
         echo "Resumen:"
-        echo "Notebooks desplegados: Ingest_artists_data Ingest_songs_data Load Transform
+        echo "Notebooks desplegados: Ingest_artists_data Ingest_songs_data Load Transform"
         echo "Workflow creado: WF_Proyecto_Final"
         echo "Tareas configuradas:"
         echo "   - Ingests_artists (Ingest_artists_data)"
-        echo "   - Ingest_songs (Ingest_songs_data)"
-        echo "   - Load (Load)"
+        echo "   - Ingests_songs (Ingest_songs_data)"
         echo "   - Transform (Transform)"
+        echo "   - Load (Load)"
         echo "Cluster existente: cluster_sd configurado"
         echo ""
         echo "🔗 Accede a tu workspace de Databricks para ver el workflow en la sección 'Workflows'"
