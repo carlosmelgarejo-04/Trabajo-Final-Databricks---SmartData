@@ -1,343 +1,366 @@
-<div align="center">
+# 🎧 Proyecto Final – Spotify Lakehouse Analytics
 
-# 🍏 Apple Store Sales and Warranty ETL Pipeline
-### Arquitectura Medallion en Azure Databricks
+<!-- TOC -->
+- [📌 Resumen Ejecutivo](#-resumen-ejecutivo)
+- [🗂 Fuentes de Datos](#-fuentes-de-datos)
+- [🏗 Arquitectura General](#-arquitectura-general)
+- [🥉 Capa Bronze (Raw Data)](#-capa-bronze-raw-data)
+- [🥈 Capa Silver (Curated / Normalized)](#-capa-silver-curated--normalized)
+- [🥇 Capa Gold (Analytics / BI)](#-capa-gold-analytics--bi)
+- [🔄 Orquestación del Pipeline](#-orquestación-del-pipeline)
+- [📊 Dashboards en Power BI](#-dashboards-en-power-bi)
+- [🔐 Gobierno de Datos](#-gobierno-de-datos)
+- [🚀 Resultados](#-resultados)
+- [📌 Posibles Mejoras Futuras](#-posibles-mejoras-futuras)
+- [👤 Autor](#-autor)
+- [📎 Referencias](#-referencias)
+<!-- /TOC -->
 
-[![Databricks](https://img.shields.io/badge/Databricks-FF3621?style=for-the-badge&logo=databricks&logoColor=white)](https://databricks.com/)
-[![Azure](https://img.shields.io/badge/Azure-0078D4?style=for-the-badge&logo=microsoft-azure&logoColor=white)](https://azure.microsoft.com/)
-[![PySpark](https://img.shields.io/badge/PySpark-E25A1C?style=for-the-badge&logo=apache-spark&logoColor=white)](https://spark.apache.org/)
-[![Delta Lake](https://img.shields.io/badge/Delta_Lake-00ADD8?style=for-the-badge&logo=delta&logoColor=white)](https://delta.io/)
-[![Databricks Dashboards](https://img.shields.io/badge/Databricks Dashboards-F2C81?style=for-the-badge&logo=databricks&logoColor=black)](https://databricks.com/)
-[![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub_Actions-2088FF?style=for-the-badge&logo=github-actions&logoColor=white)](https://github.com/features/actions)
+## 📌 Resumen Ejecutivo
 
-*Pipeline automatizado de datos para análisis de ventas y garantias de Apple Stores con arquitectura de tres capas y despliegue continuo*
+Este proyecto implementa una arquitectura **Lakehouse con patrón Medallion (Bronze → Silver → Gold)** sobre **Databricks + Unity Catalog**, integrando datos musicales de Spotify para construir productos analíticos listos para **Business Intelligence en Power BI**.
 
-</div>
-
----
-
-## 🎯 Descripción
-
-Pipeline ETL enterprise-grade que transforma datos crudos de ventas y garantias de tiendas Apple de diferentes años y paises, implementando la **Arquitectura Medallion** (Bronze-Silver-Gold) en Azure Databricks con **CI/CD completo** y **Delta Lake** para garantizar consistencia ACID.
-
-### ✨ Características Principales
-
-- 🔄 **ETL Automatizado** - Pipeline completo con despliegue automático via GitHub Actions
-- 🏗️ **Arquitectura Medallion** - Separación clara de capas Bronze → Silver → Gold
-- 📊 **Modelo Dimensional** - Star Schema optimizado para análisis de negocio
-- 🚀 **CI/CD Integrado** - Deploy automático en cada push a master
-- 📈 **Databricks Dashboards** - Visualización
-- ⚡ **Delta Lake** - ACID transactions y time travel capabilities
-- 🔔 **Monitoreo** - Notificaciones automáticas y logs detallados
+El resultado es un flujo completo de **ingestión, transformación, gobierno de datos, modelado analítico y visualización**, alineado a prácticas reales de entornos empresariales.
 
 ---
 
-## 🏛️ Arquitectura
+## 🗂 Fuentes de Datos
 
-### Flujo de Datos
+### Dataset Principal
 
-```
-📄 CSV (Raw Data)
-    ↓
-🥉 Bronze Layer (Ingesta sin transformación)
-    ↓
-🥈 Silver Layer (Limpieza + Modelo Dimensional)
-    ↓
-🥇 Gold Layer (Agregaciones de Negocio)
-    ↓
-📊 Databricks Dashboards (Visualización)
-```
+Los datos provienen de Kaggle:
 
-![Texto descriptivo](Arquitectura.png)
+> **Spotify Songs: Audio Features, Lyrics & Genres**  
+> https://www.kaggle.com/datasets/serkantysz/550k-spotify-songs-audio-lyrics-and-genres
 
+### Contenido del Dataset
 
-### 📦 Capas del Pipeline
+#### Songs
 
-<table>
-<tr>
-<td width="33%" valign="top">
+Incluye información a nivel de canción:
 
-#### 🥉 Bronze Layer
-**Propósito**: Zona de aterrizaje
+- Identificadores: `id`, `name`, `album_name`, `year`
+- Artistas: `artists`, `artist_ids`
+- Géneros: `genre`, `niche_genres`
+- Popularidad: `popularity`
+- Métricas de audio: `danceability`, `energy`, `valence`, `tempo`, `loudness`, etc.
+- Letras: `lyrics`
+- Métricas agregadas de artistas: `total_artist_followers`, `avg_artist_popularity`
 
-**Tablas**: 
-- `category` 
-- `products` 
-- `warranty`
-- `sales` 
-- `stores`
+#### Artists
 
-**Características**:
-- ✅ Datos tal como vienen de origen
-- ✅ Timestamp de ingesta
-- ✅ Preservación histórica
-- ✅ Sin validaciones
+Incluye información a nivel de artista:
 
-</td>
-<td width="33%" valign="top">
-
-#### 🥈 Silver Layer
-**Propósito**: Modelo dimensional
-
-**Tablas**:
-- `category_sales`
-- `product_sales`
-- `store_sales`
-- `store_warranty_status`
-- `warranty_products`
-
-**Características**:
-- ✅ Star Schema
-- ✅ Datos normalizados
-- ✅ Validaciones completas
-
-</td>
-<td width="33%" valign="top">
-
-#### 🥇 Gold Layer
-**Propósito**: Analytics-ready
-
-**Tablas**:
-- kpi_category_sales        : Monto total en ventas agrupado por categoría y año
-- kpi_product_sales         : Monto total en ventas agrupado por producto y año
-- kpi_store_sales           : Monto total en ventas agrupado por tienda y año
-- kpi_store_warranty_status : Total de reclamos por tienda en los diferentes estatus pivot
-- kpi_product_warranty      : Productos con mayor reclamos post venta (garantía)
-
-**Características**:
-- ✅ Pre-agregados
-- ✅ Optimizado para BI
-- ✅ Performance máximo
-- ✅ Actualizaciones automáticas
-
-</td>
-</tr>
-</table>
+- `id`
+- `name`
+- `followers`
+- `popularity`
+- `genres`
+- `main_genre`
 
 ---
 
-## 📁 Estructura del Proyecto
+## 🏗 Arquitectura General
+
+La solución sigue el patrón **Medallion Architecture**, separando claramente responsabilidades por capas:
 
 ```
-etl-apple/
-│
-├── 📂 .github/
-│   └── 📂 workflows/
-│       └── 📄 deploy-certification.yml    # Pipeline CI/CD deploy a certification workspace databricks
-├── 📂 process/
-│   ├── 🐍 ingest_catalogs.py           # Bronze layer
-│   ├── 🐍 ingest_sales.py              # Bronze Layer
-│   ├── 🐍 ingest_warranty.py           # Bronze Layer
-│   ├── 🐍 transform_sales.py           # Silver Layer
-│   ├── 🐍 transform_warranty.py        # Silver Layer
-│   └── 🐍 load_sales.py                # Gold Layer
-│   └── 🐍 load_warranty.py             # Gold Layer
-├── 📂 scrips/
-|   ├── 🐍 Enviroment preparation.py    # Create Schema, Tables, External location
-├── 📂 security/
-|   ├── 🐍 Permissions.py               # Sql Grant
-├── 📂 reversion/
-|   ├── 🐍 revoke.py               # Revoke permissions
-├── 📂 dashboards/                 # Databricks Dashboards 
-└── 📄 README.md
+Azure Data Lake / Storage
+        │
+        ▼
+Bronze (Raw)
+        │
+        ▼
+Silver (Curated / Normalized)
+        │
+        ▼
+Gold (Analytics / BI)
+        │
+        ▼
+Power BI Dashboards
 ```
+
+### Tecnologías Utilizadas
+
+- **Databricks** (PySpark + Delta Lake)
+- **Unity Catalog** (Gobierno y organización de datos)
+- **Azure Data Lake Storage Gen2**
+- **Power BI** (Visualización y análisis)
+- **Databricks Jobs** (Orquestación)
 
 ---
 
-## 🛠️ Tecnologías
+## 🥉 Capa Bronze (Raw Data)
 
-<div align="center">
+### Objetivo
 
-| Tecnología | Propósito |
-|:----------:|:----------|
-| ![Databricks](https://img.shields.io/badge/Azure_Databricks-FF3621?style=flat-square&logo=databricks&logoColor=white) | Motor de procesamiento distribuido Spark |
-| ![Delta Lake](https://img.shields.io/badge/Delta_Lake-00ADD8?style=flat-square&logo=delta&logoColor=white) | Storage layer con ACID transactions |
-| ![PySpark](https://img.shields.io/badge/PySpark-E25A1C?style=flat-square&logo=apache-spark&logoColor=white) | Framework de transformación de datos |
-| ![ADLS](https://img.shields.io/badge/ADLS_Gen2-0078D4?style=flat-square&logo=microsoft-azure&logoColor=white) | Data Lake para almacenamiento persistente |
-| ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=flat-square&logo=github-actions&logoColor=white) | Automatización CI/CD |
-| ![Databricks Dashboards](https://img.shields.io/badge/Databricks Dashboards-F2C81?style=for-the-badge&logo=databricks&logoColor=black) |  Visualización |
+Preservar los datos **tal como llegan desde la fuente**, sin transformaciones, garantizando trazabilidad y capacidad de reprocesamiento.
 
-</div>
+### Tablas
 
----
+- `bronze.songs`
+- `bronze.artists`
 
-## ⚙️ Requisitos Previos
+### Características
 
-- ☁️ Cuenta de Azure con acceso a Databricks
-- 💻 Workspace de Databricks configurado
-- 🖥️ Cluster activo (nombre: `Cluster1`)
-- 🐙 Cuenta de GitHub con permisos de administrador
-- 📦 Azure Data Lake Storage Gen2 configurado
-- 📊 Power BI Desktop (opcional para visualización)
+- Datos almacenados en formato **Delta**
+- Esquema flexible
+- Columnas complejas (listas) almacenadas como `string`
 
----
+### Proceso
 
-## 🚀 Instalación y Configuración
-
-### 1️⃣ Clonar el Repositorio
-
-```bash
-git clone https://github.com/guaru/project-databricks.git
-cd project-databricks
-```
-
-### 2️⃣ Configurar Databricks Token
-
-1. Ir a Databricks Workspace
-2. **User Settings** → **Developer** → **Access Tokens**
-3. Click en **Generate New Token**
-4. Configurar:
-   - **Comment**: `GitHub CI/CD`
-   - **Lifetime**: `90 days`
-5. ⚠️ Copiar y guardar el token
-
-### 3️⃣ Configurar GitHub Secrets
-
-En tu repositorio: **Settings** → **Secrets and variables** → **Actions**
-
-| Secret Name | Valor Ejemplo |
-|------------|---------------|
-| `DATABRICKS_HOST` | `https://adb-xxxxx.azuredatabricks.net` |
-| `DATABRICKS_TOKEN` | `dapi_xxxxxxxxxxxxxxxx` |
-
-### 4️⃣ Verificar Storage Configuration
-
-```python
-storage_path = "abfss://raw@adlsprojectsmartdata.dfs.core.windows.net"
-```
-
-<div align="center">
-
-✅ **¡Configuración completa!**
-
-</div>
+- Ingesta mediante notebooks Databricks
+- Parametrización por:
+  - `storageName`
+  - `container`
+  - `catalog`
+  - `schema`
 
 ---
 
-## 💻 Uso
+## 🥈 Capa Silver (Curated / Normalized)
 
-### 🔄 Despliegue Automático (Recomendado)
+### Objetivo
 
-```bash
-git add .
-git commit -m "✨ feat: mejoras en pipeline"
-git push origin master
-```
+Estandarizar, limpiar y normalizar los datos para que sean **consistentes, confiables y reutilizables** por múltiples productos analíticos.
 
-**GitHub Actions ejecutará**:
-- 📤 Deploy de notebooks a `/Production/ETL-APPLE`
-- 🔧 Creación del workflow `WF_PROD_ETL_APPLE_SALES`
-- ▶️ Ejecución completa:  Bronze → Silver → Gold
-- 📧 Notificaciones de resultados
+### Diseño
 
-### 🖱️ Despliegue Manual desde GitHub
+Se separaron entidades y relaciones en un modelo relacional tipo estrella.
 
-1. Ir al tab **Actions** en GitHub
-2. Seleccionar **Deploy ETL Apple Sales And Warranty**
-3. Click en **Run workflow**
-4. Seleccionar rama `main`
-5. Click en **Run workflow**
+### Tablas Silver Implementadas
 
-### 🔧 Ejecución Local en Databricks
+### 1️⃣ `silver.track`
 
-Navegar a `/Production/ETL-APPLE` y ejecutar en orden:
 
-```
-- Enviroment preparation.py         → Crear esquema
-- ingest_catalogs.py                → Bronze Layer
-- ingest_sales.py                   → Bronze Layer
-- ingest_warranty.py                → Bronze Layer
-- transform_sales.py                → Silver Layer
-- transform_warranty.py             → Silver Layer
-- load_sales.py                     → Gold Layer
-- load_warranty.py                  → Gold Layer
-```
+Campos clave:
+
+- `track_id`
+- `track_name`
+- `album_name`
+- `release_year`
+- `genre_main`
+- `track_popularity`
+- `duration_ms`
+
+Reglas:
+
+- Normalización de texto
+- Validación de rangos (popularidad, duración, año)
+- Eliminación de duplicados
 
 ---
 
-
-## 🔄 CI/CD
-
-### Pipeline de GitHub Actions
-
-```yaml
-Workflow: Deploy ETL Apple Sales And Warranty
-├── Deploy notebooks → /Production/ETL-APPLE
-├── Eliminar workflow antiguo (si existe)
-├── Buscar cluster configurado
-├── Crear nuevo workflow con 4 tareas
-├── Ejecutar pipeline automáticamente
-└── Monitorear y notificar resultados
-```
-
-### 🔄  Workflow Databricks
-![Texto descriptivo](CICD_ETL_APPLE.png)
-```
+### 2️⃣ `silver.track_audio_features`
 
 
-⏰ Schedule: Diario 8:00 AM (Lima)
-⏱️ Timeout total: 4 horas
- 🔒 Max concurrent runs: 1
-⏰ Notificaciones: 
-      success: isc.ventura@gmail.com
-      failed:  isc.ventura@gmail.com
-```
+
+Incluye métricas sonoras:
+
+- `danceability`
+- `energy`
+- `valence`
+- `tempo`
+- `loudness`
+- `acousticness`
+- `instrumentalness`
+
+Reglas:
+
+- Conversión de tipos
+- Normalización de valores entre 0 y 1
+- Control de outliers
 
 ---
 
-## 📈 Dashboards
-https://github.com/guaru/project-databricks/tree/dev/dashboards
+### 3️⃣ `silver.artist`
 
-## 🔍 Monitoreo
 
-### En Databricks
+Campos:
 
-**Workflows**:
-- Ir a **Workflows** en el menú lateral
-- Buscar `ETL_PROD_APPLE_SALES`
-- Ver historial de ejecuciones
+- `artist_id`
+- `artist_name`
+- `followers`
+- `artist_popularity`
+- `main_genre`
+- `genres_arr`
 
-**Logs por Tarea**:
-- Click en una ejecución específica
-- Click en cada tarea para ver logs detallados
-- Revisar stdout/stderr en caso de errores
+Reglas:
 
-### En GitHub Actions
+- Limpieza de texto
+- Conversión de métricas numéricas
+- Eliminación de duplicados
 
-- Tab **Actions** del repositorio
-- Ver historial de workflows
-- Click en ejecución específica para detalles
-- Revisar logs de cada step
+---
+
+### 4️⃣ `silver.bridge_track_artist`
+
+
+
+Campos:
+
+- `track_id`
+- `artist_id`
+
+Función:
+
+- Relaciona canciones con uno o múltiples artistas
+- Permite análisis cruzado por artista
+
+---
+
+### Gobernanza y Calidad
+
+- Estandarización de esquemas
+- Llaves primarias lógicas
+- Separación de dominios (tracks / artists / relaciones)
+- Preparación para control de accesos con Unity Catalog
+
+---
+
+## 🥇 Capa Gold (Analytics / BI)
+
+### Objetivo
+
+Entregar **productos de datos listos para consumo**, optimizados para Power BI y análisis avanzado.
+
+### Tablas Gold Implementadas
+
+### 1️⃣ `gold.fact_track_enriched`
+
+
+
+Incluye:
+
+- Atributos de la canción
+- Métricas de audio
+- Agregados de artistas:
+  - `artist_count`
+  - `total_followers`
+  - `avg_artist_popularity`
+  - `artists_concat`
+
+**Uso:** Base principal para análisis generales y dashboards ejecutivos.
+
+---
+
+### 2️⃣ `gold.artist_impact`
+
+
+
+Métricas:
+
+- `tracks_count`
+- `avg_track_popularity`
+- `max_track_popularity`
+- `avg_energy`
+- `avg_danceability`
+- `avg_valence`
+- `avg_tempo`
+
+**Uso:** Ranking y análisis de impacto de artistas.
+
+---
+
+### 3️⃣ `gold.genre_artist_summary`
+
+
+
+Métricas:
+
+- `tracks_count`
+- `avg_track_popularity`
+- `avg_energy`
+- `avg_danceability`
+- `avg_valence`
+
+**Uso:** Identificación de dominancia de artistas por género.
+
+---
+
+## 🔄 Orquestación del Pipeline
+
+Se implementó un **Databricks Workflow (Jobs API)** con dependencias entre tareas:
+
+1. **Ingests_artists** → Carga datos raw de artistas
+2. **Ingests_songs** → Carga datos raw de canciones
+3. **Transform** → Construcción de todas las tablas Silver
+4. **Load** → Construcción de tablas Gold
+
+### Características
+
+- Ejecución en clúster existente
+- Parámetros dinámicos
+- Dependencias explícitas
+- Programación diaria vía Quartz Cron
+
+---
+
+## 📊 Dashboards en Power BI
+
+### 1️⃣ Music Catalog Overview
+
+**Fuente:** `gold.fact_track_enriched`
+
+Visuales:
+
+- KPIs: Total de canciones, popularidad promedio, duración promedio
+- Popularidad por género
+- Mapa sonoro (Energy vs Valence)
+- Tabla de Top Canciones
+
+---
+
+### 2️⃣ Artist Impact & Ranking
+
+**Fuente:** `gold.artist_impact`
+
+Visuales:
+
+- Ranking Top Artistas
+- Impacto vs Followers (Scatter)
+- Firma sonora del artista (Radar)
+---
+
+## 🔐 Gobierno de Datos
+
+El proyecto utiliza **Unity Catalog** para:
+
+- Organización por catálogos y esquemas
+- Control de accesos por capa (Bronze / Silver / Gold)
+- Preparación para auditoría y trazabilidad
+
+---
+
+## 🚀 Resultados
+
+Este proyecto demuestra:
+
+- Implementación real de arquitectura Lakehouse
+- Separación de capas con responsabilidad clara
+- Modelado analítico para BI
+- Automatización con orquestación
+- Buenas prácticas de gobierno de datos
+
+---
+
+## 📌 Posibles Mejoras Futuras
+
+- Implementar SCD Tipo 2 en dimensiones
+- Integrar análisis de sentimiento en letras
+- Construir motor de recomendación con similitud de audio
+- Exponer tablas Gold vía API
 
 ---
 
 ## 👤 Autor
 
-<div align="center">
-
-### Alejandro de Jesus Ventura Martinez
-
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/alejandro-ventura-martinez-049009142/)
-[![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/guaru)
-[![Email](https://img.shields.io/badge/Email-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:isc.ventura@gmail.com)
-
-**Data Engineering** | **Azure Databricks** | **Delta Lake** | **CI/CD**
-
-</div>
+Proyecto desarrollado como implementación académica/práctica de ingeniería de datos y analítica con enfoque en arquitecturas empresariales modernas.
 
 ---
 
-## 📄 Licencia
+## 📎 Referencias
 
-Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para más detalles.
-
----
-
-<div align="center">
-
-**Proyecto**: Data Engineering - Arquitectura Medallion  
-**Tecnología**: Azure Databricks + Delta Lake + CI/CD  
-**Última actualización**: 2025
-
-
-</div>
+- Kaggle Spotify Dataset
+- Databricks Lakehouse & Unity Catalog Documentation
+- Power BI Data Modeling Best Practices
