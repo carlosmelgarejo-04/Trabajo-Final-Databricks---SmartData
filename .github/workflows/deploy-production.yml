@@ -122,7 +122,7 @@ jobs:
         
         # Crear el JSON del workflow usando cluster existente
         cat > workflow_config.json << EOF
-        {
+        1{
           "name": "WF_Proyecto_Final",
           "format": "MULTI_TASK",
            "tasks": [
@@ -134,9 +134,9 @@ jobs:
                         "storageName": "adlsproyectofinalsd",
                         "container": "raw",
                         "catalog": "proyectofinal",
-                        "schema": "bronze",
+                        "schema": "bronze"
                     },
-                    "source": "WORKSPACE",
+                    "source": "WORKSPACE"
                 },
                 "existing_cluster_id": "$CLUSTER_ID",
                 "timeout_seconds": 3600,
@@ -150,9 +150,9 @@ jobs:
                         "storageName": "adlsproyectofinalsd",
                         "container": "raw",
                         "catalog": "proyectofinal",
-                        "schema": "bronze",
+                        "schema": "bronze"
                     },
-                    "source": "WORKSPACE",
+                    "source": "WORKSPACE"
                 },
                 "existing_cluster_id": "$CLUSTER_ID",
                 "timeout_seconds": 3600,
@@ -162,40 +162,40 @@ jobs:
                 "task_key": "Transform",
                 "depends_on": [
                     {
-                        "task_key": "Ingests_artists",
+                        "task_key": "Ingests_artists"
                     },
                     {
-                        "task_key": "Ingests_songs",
-                    },
+                        "task_key": "Ingests_songs"
+                    }
                 ],
                 "notebook_task": {
                     "notebook_path": "/Workspace/Users/melgarejo.roman.carlos@hotmail.com/Proyecto Final/Transform",
                     "base_parameters": {
                         "catalog": "proyectofinal",
                         "schema_source": "bronze",
-                        "schema_sink": "silver",
+                        "schema_sink": "silver"
                     },
-                    "source": "WORKSPACE",
+                    "source": "WORKSPACE"
                 },
                 "existing_cluster_id": "$CLUSTER_ID",
                 "timeout_seconds": 3600,
                 "max_retries": 2
             },
             {
-                "task_key": "Load",
+                "task_key": "Load"
                 "depends_on": [
                     {
-                        "task_key": "Transform",
-                    },
+                        "task_key": "Transform"
+                    }
                 ],
                 "notebook_task": {
                     "notebook_path": "/Workspace/Users/melgarejo.roman.carlos@hotmail.com/Proyecto Final/Load",
                     "base_parameters": {
                         "catalog": "proyectofinal",
                         "schema_source": "silver",
-                        "schema_sink": "golden",
+                        "schema_sink": "golden"
                     },
-                    "source": "WORKSPACE",
+                    "source": "WORKSPACE"
                 },
                 "existing_cluster_id": "$CLUSTER_ID",
                 "timeout_seconds": 3600,
