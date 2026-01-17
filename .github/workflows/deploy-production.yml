@@ -115,7 +115,7 @@ jobs:
       run: |
         DEST_HOST=${{ secrets.DATABRICKS_DEST_HOST }}
         DEST_TOKEN=${{ secrets.DATABRICKS_DEST_TOKEN }}
-        DEST_BASE="/scripts/main"
+        DEST_BASE="/py/scripts/main"
         CLUSTER_ID="${{ env.CLUSTER_ID }}"
         
         echo "Creando workflow: WF_Proyecto_Final con cluster existente ID: $CLUSTER_ID"
@@ -123,13 +123,14 @@ jobs:
         # Crear el JSON del workflow usando cluster existente
         cat > workflow_config.json << EOF
         1{
-          {"name": "WF_Proyecto_Final",
+          {
+          "name": "WF_Proyecto_Final",
           "format": "MULTI_TASK",
            "tasks": [
             {
                 "task_key": "Ingests_artists",
                 "notebook_task": {
-                    "notebook_path": "/Workspace/Users/melgarejo.roman.carlos@hotmail.com/Proyecto Final/Ingest artists data",
+                    "notebook_path": "/py/scripts/main/Ingest_artists_data",
                     "base_parameters": {
                         "storageName": "adlsproyectofinalsd",
                         "container": "raw",
@@ -145,7 +146,7 @@ jobs:
             {
                 "task_key": "Ingests_songs",
                 "notebook_task": {
-                    "notebook_path": "/Workspace/Users/melgarejo.roman.carlos@hotmail.com/Proyecto Final/Ingest songs data",
+                    "notebook_path": "/py/scripts/main/Ingest_songs_data",
                     "base_parameters": {
                         "storageName": "adlsproyectofinalsd",
                         "container": "raw",
@@ -169,7 +170,7 @@ jobs:
                     }
                 ],
                 "notebook_task": {
-                    "notebook_path": "/Workspace/Users/melgarejo.roman.carlos@hotmail.com/Proyecto Final/Transform",
+                    "notebook_path": "/py/scripts/main/Transform",
                     "base_parameters": {
                         "catalog": "proyectofinal",
                         "schema_source": "bronze",
@@ -189,7 +190,7 @@ jobs:
                     }
                 ],
                 "notebook_task": {
-                    "notebook_path": "/Workspace/Users/melgarejo.roman.carlos@hotmail.com/Proyecto Final/Load",
+                    "notebook_path": "/py/scripts/main/Load",
                     "base_parameters": {
                         "catalog": "proyectofinal",
                         "schema_source": "silver",
