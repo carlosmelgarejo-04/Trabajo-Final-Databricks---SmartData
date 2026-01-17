@@ -18,7 +18,7 @@ jobs:
         ORIGIN_HOST=${{ secrets.DATABRICKS_ORIGIN_HOST }}
         ORIGIN_TOKEN=${{ secrets.DATABRICKS_ORIGIN_TOKEN }}
         NOTEBOOK_BASE="/Workspace/Users/melgarejo.roman.carlos@hotmail.com/Trabajo-Final-Databricks---SmartData/Files"
-        NOTEBOOKS=("Ingest artists data" "Ingest songs data" "Load" "Transform")  # Agrega más según necesitesas
+        NOTEBOOKS=("Ingest_artists_data" "Ingest_songs_data" "Load" "Transform")  # Agrega más según necesitesas
         mkdir -p notebooks_to_deploy
         for nb in "${NOTEBOOKS[@]}"; do
           echo "Exportando $nb en modo raw..."
