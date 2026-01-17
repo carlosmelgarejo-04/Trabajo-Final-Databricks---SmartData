@@ -122,7 +122,7 @@ jobs:
         
         # Crear el JSON del workflow usando cluster existente
         cat > workflow_config.json << EOF
-        1{
+        
           {
           "name": "WF_Proyecto_Final",
           "format": "MULTI_TASK",
